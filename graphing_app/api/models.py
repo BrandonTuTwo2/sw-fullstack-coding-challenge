@@ -30,11 +30,11 @@ class Sample(models.Model):
 
 class SampleSignal(models.Model):
     target = models.ForeignKey("Target", on_delete=models.CASCADE)
-    sample = models.ForeignKey("Sample", on_delete=models.CASCADE)
+    sample = models.ForeignKey("Sample",related_name="sampleSignals", on_delete=models.CASCADE)
     signal = models.FloatField()
 
 
 class UmapPlotPoint(models.Model):
     x_coor = models.FloatField(null=False)
     y_coor = models.FloatField(null=False)
-    sample = models.ForeignKey("Sample", on_delete=models.CASCADE)
+    sample = models.ForeignKey("Sample",related_name='umapPlotPoint', on_delete=models.CASCADE)

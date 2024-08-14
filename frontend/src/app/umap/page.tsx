@@ -6,19 +6,39 @@ import { useSamples, useMetaFilter } from "@/lib/sample";
 import { useUmapplotpoint } from "@/lib/umapplotpoint";
 import { ChangeEvent, useState } from "react";
 import { Data } from "plotly.js";
+import useSWR from "swr";
+import { fetchJson } from "../../lib/fetching";
+
+type Sample = {
+  id: number;
+  metadata: metadata;
+  dataset_id: number;
+  plate_barcode: string;
+  well_id: number;
+};
+
+type metadata = {
+  donor: string;
+  buffer: string;
+  "incubation time (hr)": number;
+};
 
 export default function Page() {
-  const { targets } = useTargets();
-  const { samples } = useSamples(); //assuming the samples and points are of the same size
+  const { samples } = useSamples(); //imports all without filtering
   const { points } = useUmapplotpoint();
-  //const { sampleFiltered } = useMetaFilter();
-  const [metaFilter, setMetaFilter] = useState([]);
+  const [shouldFetch, setShouldFetch] = useState(false);
   const [chosenDataSet, setChosenDataSet] = useState(1);
   const [targetDisplay, setTargetDisplay] = useState("April");
   const [donorState, setDonorState] = useState([true, true]);
-  const [donorFilter, setDonorFilter] = useState(["Donor 1", "Donor 2"]);
-  const [filterParams, setFilterParams] = useState(["Donor 1", "Donor 2"]);
-
+  const [donorChosen, setDonorChosen] = useState(["Donor 1", "Donor 2"]);
+  const [buffersChosen, setbuffersChosen] = useState(["NaCl", "PBS"]);
+  //const { sampleFiltered } = useMetaFilter(shouldFetch, donorChosen);
+  console.log("HIII");
+  console.log(samples);
+  const { data } = useSWR<Sample[]>(
+    shouldFetch ? `/api/metaFilter?donors=${donorChosen.toString()}` : null,
+    fetchJson
+  );
   let dataArr: Data[] = [];
   //const donorFilter = ["Donor 1", "Donor 2"];
   //console.log(samples);
@@ -31,14 +51,14 @@ export default function Page() {
   };
 
   const handleInputChange = (e) => {
-    const exists = filterParams.find((filter) => filter === e.target.value);
+    const exists = donorChosen.find((filter) => filter === e.target.value);
     if (exists) {
-      const updatedFilters = filterParams.filter(
+      const updatedFilters = donorChosen.filter(
         (filter) => filter !== e.target.value
       );
-      setFilterParams(updatedFilters);
+      setDonorChosen(updatedFilters);
     } else {
-      setFilterParams([...filterParams, e.target.value]);
+      setDonorChosen([...donorChosen, e.target.value]);
     }
   };
 
@@ -55,29 +75,38 @@ export default function Page() {
     }
   ];
 
+  const filterClicked = () => {
+    console.log("CLICKED!");
+    console.log(donorChosen);
+    console.log(data);
+    setShouldFetch(true);
+    console.log("HERE IS SHOULD FETCH");
+    console.log(shouldFetch);
+    console.log("Here is sampleFiltered");
+    console.log(data);
+
+    if (data !== null) {
+      //samples = data;
+      //setPoints();
+    }
+  };
+
   const setPoints = () => {
     dataArr = [];
     if (samples && points) {
       for (let i = 0; i < samples?.length; i++) {
-        if (
-          samples[i].dataset_id === chosenDataSet &&
-          filterParams.includes(samples[i].metadata.donor)
-        ) {
-          const index = points.findIndex(
-            (point) => point.sample_id == samples[i].id
-          );
+        if (samples[i].dataset_id === chosenDataSet) {
           dataArr.push({
             showlegend: false,
-            x: [points[index].x_coor],
-            y: [points[index].y_coor],
+            x: [samples[i].umapPlotPoint[0].x_coor],
+            y: [samples[i].umapPlotPoint[0].y_coor],
             text: [
-              `Buffer:${samples[index].metadata.buffer} Donor:${samples[index].metadata.donor} Incubation Time(hr):${samples[index].metadata["incubation time (hr)"]}`
+              `Buffer:${samples[i].metadata.buffer} Donor:${samples[i].metadata.donor} Incubation Time(hr):${samples[i].metadata["incubation time (hr)"]}`
             ],
-            name: `Sample ${index + 1}`
+            name: `Sample ${i + 1}`
           });
         }
       }
-      //console.log(dataArr);
     }
   };
 
@@ -126,9 +155,7 @@ export default function Page() {
                 value={filter.value}
                 onChange={(e) => handleInputChange(e)}
                 id={filter.id}
-                checked={filterParams.find(
-                  (item: string) => item === filter.value
-                )}
+                checked={donorChosen.includes(filter.value)}
               />
               <label className="form-check-label" htmlFor={filter.id}>
                 {filter.label}
@@ -265,6 +292,12 @@ export default function Page() {
           PD-1
         </label>
       </form>
+      <button
+        onClick={filterClicked}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+      >
+        Use Filter
+      </button>
     </>
   );
 }

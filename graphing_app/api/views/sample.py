@@ -14,9 +14,12 @@ class metaFilter(generics.ListAPIView):
     def get_queryset(self):
         queryset = Sample.objects.all()
         donorQuery = self.request.query_params.get('donors')
+        print("heres the donor Query")
+        print(donorQuery)
         #we could use * for default maybe
         if donorQuery is not None:
-            queryset = Sample.objects.filter(metadata__donor=donorQuery).values()
-        else:
-            print("NO BEUNO")
+            print("word")
+            queryset = Sample.objects.filter(metadata__donor="Donor 1").values()
+        #print("sending back")
+        print(queryset[0])
         return queryset

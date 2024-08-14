@@ -7,12 +7,28 @@ type Sample = {
   dataset_id: number;
   plate_barcode: string;
   well_id: number;
+  umapPlotPoint: Umapplotpoint[];
+  sampleSignals: sampleSignal[];
+};
+
+type Umapplotpoint = {
+  id: number;
+  x_coor: number;
+  y_coor: number;
+  sample_id: number;
 };
 
 type metadata = {
   donor: string;
   buffer: string;
   "incubation time (hr)": number;
+};
+
+type sampleSignal = {
+  id: number;
+  signal: number;
+  sample_id: number;
+  target_id: number;
 };
 
 export function useSamples() {
@@ -28,9 +44,9 @@ export function useSamples() {
   };
 }
 
-export function MetaFilter(donorChoice: string) {
+export function useMetaFilter(shouldFetch: boolean, donorChoice: string[]) {
   const { data, error, isLoading } = useSWR<Sample[]>(
-    `/api/metaFilter?donors=${donorChoice}`,
+    shouldFetch ? `/api/metaFilter?donors=${donorChoice.toString()}` : null,
     fetchJson
   );
 
