@@ -16,10 +16,26 @@ type metadata = {
 };
 
 export function useSamples() {
-  const { data, error, isLoading } = useSWR<Sample[]>("/api/sample", fetchJson);
+  const { data, error, isLoading } = useSWR<Sample[]>(
+    "/api/sample/",
+    fetchJson
+  );
 
   return {
     samples: data,
+    isLoading,
+    isError: error
+  };
+}
+
+export function MetaFilter(donorChoice: string) {
+  const { data, error, isLoading } = useSWR<Sample[]>(
+    `/api/metaFilter?donors=${donorChoice}`,
+    fetchJson
+  );
+
+  return {
+    sampleFiltered: data,
     isLoading,
     isError: error
   };
