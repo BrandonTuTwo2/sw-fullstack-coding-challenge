@@ -12,10 +12,23 @@ class SampleViewSet(viewsets.ReadOnlyModelViewSet):
 
 class metaFilter(generics.ListAPIView):
     print("HI IM BEING CALLED")
-    queryset = Sample.objects.all()
     serializer_class = SampleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SampleFilter
+
+    def get_queryset(self):
+        queryset = Sample.objects.all()
+
+        targetId = self.request.query_params.get('target',None)
+
+        if targetId:
+            print("YEA")
+            print(targetId)
+            queryset = queryset.filter(sampleSignals__target_id__in=targetId).distinct()
+
+        return queryset
+
+
     '''
     filterset_fields = {
         'dataset_id': ["exact"],

@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 import { useSamples, useMetaFilter, Sample } from "@/lib/sample";
 import { ChangeEvent, useEffect, useState } from "react";
-import { Data } from "plotly.js";
+import { Data, PlotData } from "plotly.js";
 import useSWR from "swr";
 import { fetchJson } from "../../lib/fetching";
 
@@ -21,7 +21,7 @@ export default function Page() {
   //might want to move this
   const { data } = useSWR<Sample[]>(
     shouldFetch
-      ? `/api/metaFilter/?dataset_id=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=${buffersChosen}&incubation=${incubationChosen}`
+      ? `/api/metaFilter/?dataset_id=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=${buffersChosen}&incubation=${incubationChosen}&target=1`
       : null,
     fetchJson
   );
@@ -156,8 +156,22 @@ export default function Page() {
     console.log(data);
     if (data) {
       console.log("PLEASE?");
-      const tempDataArr: Data[] = [];
+      const plotData: PlotData = {};
+      plotData.showlegend = false;
+      plotData.mode = "markers";
+      const xCoor = [];
+      const yCoor = [];
+      const textData = [];
+      let tempDataArr: Data[] = [];
+      const colours = [];
       for (let i = 0; i < data?.length; i++) {
+        xCoor.push(data[i].umapPlotPoint[0].x_coor);
+        yCoor.push(data[i].umapPlotPoint[0].y_coor);
+        textData.push(
+          `Dataset:${data[i].dataset_id} Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]} Signal:${data[i].sampleSignals[0].signal}`
+        );
+        colours.push(data[i].sampleSignals[0].signal);
+        /*
         tempDataArr.push({
           showlegend: false,
           x: [data[i].umapPlotPoint[0].x_coor],
@@ -165,9 +179,25 @@ export default function Page() {
           text: [
             `Dataset:${data[i].dataset_id} Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]}`
           ],
-          name: `Sample ${i + 1}`
+          name: `Sample ${i + 1}`,
+          mode: "markers",
+          marker: {
+            color: [data[i].sampleSignals[0].signal]
+          }
         });
+        */
       }
+
+      plotData.x = xCoor;
+      plotData.y = yCoor;
+      plotData.text = textData;
+      plotData.marker = {
+        size: 40,
+        color: colours
+      };
+      tempDataArr = [];
+      tempDataArr.push(plotData);
+
       setDataArr(tempDataArr);
     }
   }, [data, shouldFetch]);
