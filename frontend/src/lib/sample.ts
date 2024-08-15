@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import { fetchJson } from "./fetching";
 
-type Sample = {
+export type Sample = {
   id: number;
   metadata: metadata;
   dataset_id: number;

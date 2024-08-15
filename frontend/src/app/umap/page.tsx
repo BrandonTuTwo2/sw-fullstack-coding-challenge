@@ -2,26 +2,13 @@
 import dynamic from "next/dynamic";
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
 import { useTargets } from "@/lib/target";
-import { useSamples, useMetaFilter } from "@/lib/sample";
+import { useSamples, useMetaFilter, Sample } from "@/lib/sample";
 import { useUmapplotpoint } from "@/lib/umapplotpoint";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Data } from "plotly.js";
 import useSWR from "swr";
 import { fetchJson } from "../../lib/fetching";
 
-type Sample = {
-  id: number;
-  metadata: metadata;
-  dataset_id: number;
-  plate_barcode: string;
-  well_id: number;
-};
-
-type metadata = {
-  donor: string;
-  buffer: string;
-  "incubation time (hr)": number;
-};
 
 export default function Page() {
   const { samples } = useSamples(); //imports all without filtering
@@ -33,13 +20,16 @@ export default function Page() {
   const [donorChosen, setDonorChosen] = useState(["Donor 1", "Donor 2"]);
   const [buffersChosen, setbuffersChosen] = useState(["NaCl", "PBS"]);
   //const { sampleFiltered } = useMetaFilter(shouldFetch, donorChosen);
-  console.log("HIII");
-  console.log(samples);
+  //console.log("HIII");
+  //console.log(samples);
   const { data } = useSWR<Sample[]>(
-    shouldFetch ? `/api/metaFilter?donors=${donorChosen.toString()}` : null,
+    shouldFetch
+      ? `/api/metaFilter/?dataset_id__in=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=NaCl`
+      : null,
     fetchJson
   );
-  let dataArr: Data[] = [];
+  //let dataArr: Data[] = [];
+  let [dataArr, setDataArr] = useState(Array<Data>);
   //const donorFilter = ["Donor 1", "Donor 2"];
   //console.log(samples);
   //console.log(points);
@@ -47,7 +37,7 @@ export default function Page() {
   //console.log(sampleFiltered);
   const changeDataSet = (e: ChangeEvent<HTMLInputElement>) => {
     setChosenDataSet(parseInt(e.target.value));
-    setPoints();
+    setPoints(samples);
   };
 
   const handleInputChange = (e) => {
@@ -82,35 +72,60 @@ export default function Page() {
     setShouldFetch(true);
     console.log("HERE IS SHOULD FETCH");
     console.log(shouldFetch);
-    console.log("Here is sampleFiltered");
-    console.log(data);
-
     if (data !== null) {
       //samples = data;
-      //setPoints();
+      //setPoints(data);
+      //console.log("Here is sampleFiltered");
+      //console.log(data);
     }
   };
 
-  const setPoints = () => {
-    dataArr = [];
-    if (samples && points) {
-      for (let i = 0; i < samples?.length; i++) {
-        if (samples[i].dataset_id === chosenDataSet) {
-          dataArr.push({
+  const setPoints = (info) => {
+    console.log("HI BEING CALLED HERE");
+    const tempDataArr: Data[] = [];
+    if (info) {
+      for (let i = 0; i < info?.length; i++) {
+        tempDataArr.push({
+          showlegend: false,
+          x: [info[i].umapPlotPoint[0].x_coor],
+          y: [info[i].umapPlotPoint[0].y_coor],
+          text: [
+            `Buffer:${info[i].metadata.buffer} Donor:${info[i].metadata.donor} Incubation Time(hr):${info[i].metadata["incubation time (hr)"]}`
+          ],
+          name: `Sample ${i + 1}`
+        });
+      }
+    }
+    setDataArr(tempDataArr);
+  };
+
+  //setPoints(samples);
+
+  useEffect(() => {
+    console.log("DID SOMETHING CHANGE?");
+    console.log("CLICKED!");
+    setShouldFetch(true);
+    console.log("Here is sampleFiltered");
+    console.log(data);
+    if (data) {
+      console.log("PLEASE?");
+      const tempDataArr: Data[] = [];
+      for (let i = 0; i < data?.length; i++) {
+        if (data[i].dataset_id === chosenDataSet) {
+          tempDataArr.push({
             showlegend: false,
-            x: [samples[i].umapPlotPoint[0].x_coor],
-            y: [samples[i].umapPlotPoint[0].y_coor],
+            x: [data[i].umapPlotPoint[0].x_coor],
+            y: [data[i].umapPlotPoint[0].y_coor],
             text: [
-              `Buffer:${samples[i].metadata.buffer} Donor:${samples[i].metadata.donor} Incubation Time(hr):${samples[i].metadata["incubation time (hr)"]}`
+              `Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]}`
             ],
             name: `Sample ${i + 1}`
           });
         }
       }
+      setDataArr(tempDataArr);
     }
-  };
-
-  setPoints();
+  }, [data, shouldFetch]);
 
   return (
     <>
