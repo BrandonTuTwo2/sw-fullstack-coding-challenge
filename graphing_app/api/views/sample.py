@@ -11,15 +11,17 @@ class SampleViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SampleSerializer
 
 class metaFilter(generics.ListAPIView):
+    print("HI IM BEING CALLED")
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SampleFilter
+    '''
     filterset_fields = {
         'dataset_id': ["exact"],
         'donor': ["in","exact"]
     }
-    '''
+    
     def get_queryset(self):
         queryset = Sample.objects.all()
         donorQuery = self.request.query_params.get('donors')

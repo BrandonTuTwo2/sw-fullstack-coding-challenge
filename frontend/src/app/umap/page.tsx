@@ -1,54 +1,65 @@
 "use client";
 import dynamic from "next/dynamic";
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
-import { useTargets } from "@/lib/target";
 import { useSamples, useMetaFilter, Sample } from "@/lib/sample";
-import { useUmapplotpoint } from "@/lib/umapplotpoint";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Data } from "plotly.js";
 import useSWR from "swr";
 import { fetchJson } from "../../lib/fetching";
 
-
 export default function Page() {
-  const { samples } = useSamples(); //imports all without filtering
-  const { points } = useUmapplotpoint();
   const [shouldFetch, setShouldFetch] = useState(false);
-  const [chosenDataSet, setChosenDataSet] = useState(1);
+  const [chosenDataSet, setChosenDataSet] = useState(["1"]);
   const [targetDisplay, setTargetDisplay] = useState("April");
-  const [donorState, setDonorState] = useState([true, true]);
   const [donorChosen, setDonorChosen] = useState(["Donor 1", "Donor 2"]);
   const [buffersChosen, setbuffersChosen] = useState(["NaCl", "PBS"]);
+  const [incubationChosen, setInucationChosen] = useState(["1", "2", "3", "4"]);
+  const [dataArr, setDataArr] = useState(Array<Data>);
   //const { sampleFiltered } = useMetaFilter(shouldFetch, donorChosen);
   //console.log("HIII");
   //console.log(samples);
+  //might want to move this
   const { data } = useSWR<Sample[]>(
     shouldFetch
-      ? `/api/metaFilter/?dataset_id__in=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=NaCl`
+      ? `/api/metaFilter/?dataset_id=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=${buffersChosen}&incubation=${incubationChosen}`
       : null,
     fetchJson
   );
   //let dataArr: Data[] = [];
-  let [dataArr, setDataArr] = useState(Array<Data>);
   //const donorFilter = ["Donor 1", "Donor 2"];
   //console.log(samples);
   //console.log(points);
   //console.log("HEY");
   //console.log(sampleFiltered);
   const changeDataSet = (e: ChangeEvent<HTMLInputElement>) => {
-    setChosenDataSet(parseInt(e.target.value));
-    setPoints(samples);
+    setChosenDataSet([e.target.value]);
   };
 
-  const handleInputChange = (e) => {
-    const exists = donorChosen.find((filter) => filter === e.target.value);
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement>,
+    metaChosen: string,
+    metaArr: string[]
+  ) => {
+    const exists = metaArr.find((filter) => filter === e.target.value);
     if (exists) {
-      const updatedFilters = donorChosen.filter(
+      const updatedFilters = metaArr.filter(
         (filter) => filter !== e.target.value
       );
-      setDonorChosen(updatedFilters);
+      if (metaChosen === "donor") {
+        setDonorChosen(updatedFilters);
+      } else if (metaChosen === "buffer") {
+        setbuffersChosen(updatedFilters);
+      } else if (metaChosen === "incubation") {
+        setInucationChosen(updatedFilters);
+      }
     } else {
-      setDonorChosen([...donorChosen, e.target.value]);
+      if (metaChosen === "donor") {
+        setDonorChosen([...metaArr, e.target.value]);
+      } else if (metaChosen === "buffer") {
+        setbuffersChosen([...metaArr, e.target.value]);
+      } else if (metaChosen === "incubation") {
+        setInucationChosen([...metaArr, e.target.value]);
+      }
     }
   };
 
@@ -62,6 +73,42 @@ export default function Page() {
       id: "Donor 2",
       label: "Donor 2",
       value: "Donor 2"
+    }
+  ];
+
+  const bufferCheckBoxes = [
+    {
+      id: "NaCl",
+      label: "NaCl",
+      value: "NaCl"
+    },
+    {
+      id: "PBS",
+      label: "PBS",
+      value: "PBS"
+    }
+  ];
+
+  const incubationTimeBoxes = [
+    {
+      id: "inc1",
+      label: "1",
+      value: "1"
+    },
+    {
+      id: "inc2",
+      label: "2",
+      value: "2"
+    },
+    {
+      id: "inc3",
+      label: "3",
+      value: "3"
+    },
+    {
+      id: "inc4",
+      label: "4",
+      value: "4"
     }
   ];
 
@@ -111,17 +158,15 @@ export default function Page() {
       console.log("PLEASE?");
       const tempDataArr: Data[] = [];
       for (let i = 0; i < data?.length; i++) {
-        if (data[i].dataset_id === chosenDataSet) {
-          tempDataArr.push({
-            showlegend: false,
-            x: [data[i].umapPlotPoint[0].x_coor],
-            y: [data[i].umapPlotPoint[0].y_coor],
-            text: [
-              `Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]}`
-            ],
-            name: `Sample ${i + 1}`
-          });
-        }
+        tempDataArr.push({
+          showlegend: false,
+          x: [data[i].umapPlotPoint[0].x_coor],
+          y: [data[i].umapPlotPoint[0].y_coor],
+          text: [
+            `Dataset:${data[i].dataset_id} Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]}`
+          ],
+          name: `Sample ${i + 1}`
+        });
       }
       setDataArr(tempDataArr);
     }
@@ -136,7 +181,7 @@ export default function Page() {
           <input
             type="radio"
             name="Dataset 1"
-            checked={chosenDataSet === 1}
+            checked={chosenDataSet[0] === "1"}
             onChange={(e) => changeDataSet(e)}
             value="1"
           />
@@ -147,7 +192,7 @@ export default function Page() {
           <input
             type="radio"
             name="Dataset 2"
-            checked={chosenDataSet === 2}
+            checked={chosenDataSet[0] === "2"}
             onChange={(e) => changeDataSet(e)}
             value="2"
           />
@@ -168,7 +213,7 @@ export default function Page() {
                 className="form-check-input"
                 type="checkbox"
                 value={filter.value}
-                onChange={(e) => handleInputChange(e)}
+                onChange={(e) => handleInputChange(e, "donor", donorChosen)}
                 id={filter.id}
                 checked={donorChosen.includes(filter.value)}
               />
@@ -180,29 +225,47 @@ export default function Page() {
         ))}
       </ul>
       <p>Buffer</p>
-      <form>
-        <label>
-          <input type="checkbox" value="NaCl" /> NaCl
-        </label>
-        <label>
-          <input type="checkbox" value="PBS" /> PBS
-        </label>
-      </form>
+      <ul className="list-group">
+        {bufferCheckBoxes.map((filter) => (
+          <li key={filter.id} className="list-group-item">
+            <div className="form-check flex-grow-1">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                value={filter.value}
+                onChange={(e) => handleInputChange(e, "buffer", buffersChosen)}
+                id={filter.id}
+                checked={buffersChosen.includes(filter.value)}
+              />
+              <label className="form-check-label" htmlFor={filter.id}>
+                {filter.label}
+              </label>
+            </div>
+          </li>
+        ))}
+      </ul>
       <p>Incubation Time(h)</p>
-      <form>
-        <label>
-          <input type="checkbox" value="1" /> 1
-        </label>
-        <label>
-          <input type="checkbox" value="2" /> 2
-        </label>
-        <label>
-          <input type="checkbox" value="3" /> 3
-        </label>
-        <label>
-          <input type="checkbox" value="4" /> 4
-        </label>
-      </form>
+      <ul className="list-group">
+        {incubationTimeBoxes.map((filter) => (
+          <li key={filter.id} className="list-group-item">
+            <div className="form-check flex-grow-1">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                value={filter.value}
+                onChange={(e) =>
+                  handleInputChange(e, "incubation", incubationChosen)
+                }
+                id={filter.id}
+                checked={incubationChosen.includes(filter.value)}
+              />
+              <label className="form-check-label" htmlFor={filter.id}>
+                {filter.label}
+              </label>
+            </div>
+          </li>
+        ))}
+      </ul>
 
       <p>Targets(?)</p>
       <form>
