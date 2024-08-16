@@ -109,9 +109,7 @@ export default function Page() {
       value: "4"
     }
   ];
-  useEffect(() =>{
 
-  },[])
   useEffect(() => {
     if (sampleFiltered) {
       console.log(sampleFiltered);
