@@ -26,11 +26,10 @@ class Sample(models.Model):
     well_id = models.CharField(max_length=100)
     dataset = models.ForeignKey("Dataset", on_delete=models.CASCADE)
     metadata = ORJSONDecodedField(null=True)
-
-
+    
 class SampleSignal(models.Model):
     target = models.ForeignKey("Target", on_delete=models.CASCADE)
-    sample = models.ForeignKey("Sample",related_name="sampleSignals", on_delete=models.CASCADE)
+    sample = models.ForeignKey("Sample",related_name="sample_signals", on_delete=models.CASCADE)
     signal = models.FloatField()
 
 

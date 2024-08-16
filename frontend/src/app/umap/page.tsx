@@ -10,18 +10,32 @@ import { fetchJson } from "../../lib/fetching";
 export default function Page() {
   const [shouldFetch, setShouldFetch] = useState(false);
   const [chosenDataSet, setChosenDataSet] = useState(["1"]);
+  const [targetChosen, setTargetChosen] = useState(["1"]);
   const [targetDisplay, setTargetDisplay] = useState("April");
   const [donorChosen, setDonorChosen] = useState(["Donor 1", "Donor 2"]);
   const [buffersChosen, setbuffersChosen] = useState(["NaCl", "PBS"]);
   const [incubationChosen, setInucationChosen] = useState(["1", "2", "3", "4"]);
   const [dataArr, setDataArr] = useState(Array<Data>);
+
+  const targetToNum = {
+    "1": "April",
+    "2": "BAFF",
+    "3": "CCL1",
+    "4": "CNTF",
+    "5": "IFN gamma",
+    "6": "Mesothelin",
+    "7": "PDGF-BB",
+    "8": "TWEAK",
+    "9": "uPA",
+    "10": "PD-1"
+  };
   //const { sampleFiltered } = useMetaFilter(shouldFetch, donorChosen);
   //console.log("HIII");
   //console.log(samples);
   //might want to move this
   const { data } = useSWR<Sample[]>(
     shouldFetch
-      ? `/api/metaFilter/?dataset_id=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=${buffersChosen}&incubation=${incubationChosen}&target=1`
+      ? `/api/metaFilter/?dataset_id=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=${buffersChosen}&incubation=${incubationChosen}&target=${targetChosen}`
       : null,
     fetchJson
   );
@@ -112,6 +126,8 @@ export default function Page() {
     }
   ];
 
+  const targetRadio = [];
+
   const filterClicked = () => {
     console.log("CLICKED!");
     console.log(donorChosen);
@@ -168,9 +184,9 @@ export default function Page() {
         xCoor.push(data[i].umapPlotPoint[0].x_coor);
         yCoor.push(data[i].umapPlotPoint[0].y_coor);
         textData.push(
-          `Dataset:${data[i].dataset_id} Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]} Signal:${data[i].sampleSignals[0].signal}`
+          `Dataset:${data[i].dataset_id} Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]} Signal:${data[i].sample_signals[0].signal}`
         );
-        colours.push(data[i].sampleSignals[0].signal);
+        colours.push(data[i].sample_signals[0].signal);
         /*
         tempDataArr.push({
           showlegend: false,
@@ -304,7 +320,10 @@ export default function Page() {
             type="radio"
             name="April"
             checked={targetDisplay === "April"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["1"]);
+            }}
             value="April"
           />
           April
@@ -314,7 +333,10 @@ export default function Page() {
             type="radio"
             name="BAFF"
             checked={targetDisplay === "BAFF"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["2"]);
+            }}
             value="BAFF"
           />
           BAFF
@@ -324,7 +346,10 @@ export default function Page() {
             type="radio"
             name="CCL1"
             checked={targetDisplay === "CCL1"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["3"]);
+            }}
             value="CCL1"
           />
           CCL1
@@ -334,7 +359,10 @@ export default function Page() {
             type="radio"
             name="CNTF"
             checked={targetDisplay === "CNTF"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["4"]);
+            }}
             value="CNTF"
           />
           CNTF
@@ -344,7 +372,10 @@ export default function Page() {
             type="radio"
             name="IFN gamma"
             checked={targetDisplay === "IFN gamma"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["5"]);
+            }}
             value="IFN gamma"
           />
           IFN gamma
@@ -354,7 +385,10 @@ export default function Page() {
             type="radio"
             name="Mesothelin"
             checked={targetDisplay === "Mesothelin"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["6"]);
+            }}
             value="Mesothelin"
           />
           Mesothelin
@@ -364,7 +398,10 @@ export default function Page() {
             type="radio"
             name="PDGF-BB"
             checked={targetDisplay === "PDGF-BB"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["7"]);
+            }}
             value="PDGF-BB"
           />
           PDGF-BB
@@ -374,7 +411,10 @@ export default function Page() {
             type="radio"
             name="TWEAK"
             checked={targetDisplay === "TWEAK"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["8"]);
+            }}
             value="TWEAK"
           />
           TWEAK
@@ -384,7 +424,10 @@ export default function Page() {
             type="radio"
             name="uPA"
             checked={targetDisplay === "uPA"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["9"]);
+            }}
             value="uPA"
           />
           uPA
@@ -394,7 +437,10 @@ export default function Page() {
             type="radio"
             name="PD-1"
             checked={targetDisplay === "PD-1"}
-            onChange={(e) => setTargetDisplay(e.target.value)}
+            onChange={(e) => {
+              setTargetDisplay(e.target.value);
+              setTargetChosen(["10"]);
+            }}
             value="PD-1"
           />
           PD-1

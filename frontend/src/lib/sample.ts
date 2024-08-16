@@ -8,7 +8,7 @@ export type Sample = {
   plate_barcode: string;
   well_id: number;
   umapPlotPoint: Umapplotpoint[];
-  sampleSignals: sampleSignal[];
+  sample_signals: sample_signals[];
 };
 
 type Umapplotpoint = {
@@ -24,7 +24,7 @@ type metadata = {
   "incubation time (hr)": number;
 };
 
-type sampleSignal = {
+type sample_signals = {
   id: number;
   signal: number;
   sample_id: number;

@@ -1,4 +1,4 @@
-from api.models import Sample, ORJSONDecodedField
+from api.models import Sample
 from api.serializers import SampleSerializer
 from rest_framework import viewsets, generics
 from django.db import models
@@ -11,22 +11,22 @@ class SampleViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SampleSerializer
 
 class metaFilter(generics.ListAPIView):
-    print("HI IM BEING CALLED")
+    queryset = Sample.objects.all()
     serializer_class = SampleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SampleFilter
 
-    def get_queryset(self):
-        queryset = Sample.objects.all()
+    def get_serializer_context(self):
+        targetRaw = self.request.query_params.get('target',None)
+        target = None
+        if targetRaw:
+            target = targetRaw
+        
+        return {
+            'target': target
+        }
 
-        targetId = self.request.query_params.get('target',None)
 
-        if targetId:
-            print("YEA")
-            print(targetId)
-            queryset = queryset.filter(sampleSignals__target_id__in=targetId).distinct()
-
-        return queryset
 
 
     '''

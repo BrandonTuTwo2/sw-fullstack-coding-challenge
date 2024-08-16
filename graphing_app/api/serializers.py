@@ -24,10 +24,16 @@ class SampleSignalSerializer(serializers.ModelSerializer):
 
 class SampleSerializer(serializers.ModelSerializer):
     umapPlotPoint = UmapplotpointSerializer(many=True,read_only=True)
-    sampleSignals = SampleSignalSerializer(many=True,read_only=True)
+    sample_signals = serializers.SerializerMethodField()
     class Meta:
         model = Sample
-        fields = ["id","metadata","dataset_id","plate_barcode","well_id","umapPlotPoint","sampleSignals"]
+        fields = ["id","metadata","dataset_id","plate_barcode","well_id","umapPlotPoint","sample_signals"]
+
+    def get_sample_signals(self, obj):
+        target = self.context.get('target', None)
+        return SampleSignalSerializer(obj.sample_signals.filter(target_id=target), many=True).data
+
+    
 
 
 
