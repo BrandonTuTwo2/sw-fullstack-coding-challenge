@@ -44,9 +44,18 @@ export function useSamples() {
   };
 }
 
-export function useMetaFilter(shouldFetch: boolean, donorChoice: string[]) {
+export function useMetaFilter(
+  shouldFetch: boolean,
+  chosenDataSet: string[],
+  donorChosen: string[],
+  buffersChosen: string[],
+  incubationChosen: string[],
+  targetChosen: string[]
+) {
   const { data, error, isLoading } = useSWR<Sample[]>(
-    shouldFetch ? `/api/metaFilter?donors=${donorChoice.toString()}` : null,
+    shouldFetch
+      ? `/api/metaFilter/?dataset_id=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=${buffersChosen}&incubation=${incubationChosen}&target=${targetChosen}`
+      : null,
     fetchJson
   );
 

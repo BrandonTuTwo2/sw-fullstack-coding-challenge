@@ -1,14 +1,19 @@
 "use client";
 import dynamic from "next/dynamic";
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
-import { useSamples, useMetaFilter, Sample } from "@/lib/sample";
+import { useMetaFilter } from "@/lib/sample";
 import { ChangeEvent, useEffect, useState } from "react";
-import { Data, PlotData } from "plotly.js";
-import useSWR from "swr";
-import { fetchJson } from "../../lib/fetching";
+import { Data } from "plotly.js";
+import {
+  Button,
+  Accordion,
+  AccordionBody,
+  AccordionHeader,
+  AccordionList
+} from "@tremor/react";
 
 export default function Page() {
-  const [shouldFetch, setShouldFetch] = useState(false);
+  const [shouldFetch, setShouldFetch] = useState(true);
   const [chosenDataSet, setChosenDataSet] = useState(["1"]);
   const [targetChosen, setTargetChosen] = useState(["1"]);
   const [targetDisplay, setTargetDisplay] = useState("April");
@@ -17,34 +22,15 @@ export default function Page() {
   const [incubationChosen, setInucationChosen] = useState(["1", "2", "3", "4"]);
   const [dataArr, setDataArr] = useState(Array<Data>);
 
-  const targetToNum = {
-    "1": "April",
-    "2": "BAFF",
-    "3": "CCL1",
-    "4": "CNTF",
-    "5": "IFN gamma",
-    "6": "Mesothelin",
-    "7": "PDGF-BB",
-    "8": "TWEAK",
-    "9": "uPA",
-    "10": "PD-1"
-  };
-  //const { sampleFiltered } = useMetaFilter(shouldFetch, donorChosen);
-  //console.log("HIII");
-  //console.log(samples);
-  //might want to move this
-  const { data } = useSWR<Sample[]>(
-    shouldFetch
-      ? `/api/metaFilter/?dataset_id=${chosenDataSet}&donor=${donorChosen.toString()}&buffer=${buffersChosen}&incubation=${incubationChosen}&target=${targetChosen}`
-      : null,
-    fetchJson
+  const { sampleFiltered } = useMetaFilter(
+    shouldFetch,
+    chosenDataSet,
+    donorChosen,
+    buffersChosen,
+    incubationChosen,
+    targetChosen
   );
-  //let dataArr: Data[] = [];
-  //const donorFilter = ["Donor 1", "Donor 2"];
-  //console.log(samples);
-  //console.log(points);
-  //console.log("HEY");
-  //console.log(sampleFiltered);
+
   const changeDataSet = (e: ChangeEvent<HTMLInputElement>) => {
     setChosenDataSet([e.target.value]);
   };
@@ -126,332 +112,289 @@ export default function Page() {
     }
   ];
 
-  const targetRadio = [];
-
-  const filterClicked = () => {
-    console.log("CLICKED!");
-    console.log(donorChosen);
-    console.log(data);
-    setShouldFetch(true);
-    console.log("HERE IS SHOULD FETCH");
-    console.log(shouldFetch);
-    if (data !== null) {
-      //samples = data;
-      //setPoints(data);
-      //console.log("Here is sampleFiltered");
-      //console.log(data);
+  const targetRadio = [
+    {
+      id: "1",
+      label: "April",
+      value: "1"
+    },
+    {
+      id: "2",
+      label: "BAFF",
+      value: "2"
+    },
+    {
+      id: "3",
+      label: "CCL1",
+      value: "3"
+    },
+    {
+      id: "4",
+      label: "CNTF",
+      value: "4"
+    },
+    {
+      id: "5",
+      label: "IFN gamma",
+      value: "5"
+    },
+    {
+      id: "6",
+      label: "Mesothelin",
+      value: "6"
+    },
+    {
+      id: "7",
+      label: "PDFG-BB",
+      value: "7"
+    },
+    {
+      id: "8",
+      label: "TWEAK",
+      value: "8"
+    },
+    {
+      id: "9",
+      label: "uPA",
+      value: "9"
+    },
+    {
+      id: "10",
+      label: "PD-1",
+      value: "10"
     }
-  };
-
-  const setPoints = (info) => {
-    console.log("HI BEING CALLED HERE");
-    const tempDataArr: Data[] = [];
-    if (info) {
-      for (let i = 0; i < info?.length; i++) {
-        tempDataArr.push({
-          showlegend: false,
-          x: [info[i].umapPlotPoint[0].x_coor],
-          y: [info[i].umapPlotPoint[0].y_coor],
-          text: [
-            `Buffer:${info[i].metadata.buffer} Donor:${info[i].metadata.donor} Incubation Time(hr):${info[i].metadata["incubation time (hr)"]}`
-          ],
-          name: `Sample ${i + 1}`
-        });
-      }
-    }
-    setDataArr(tempDataArr);
-  };
-
-  //setPoints(samples);
+  ];
 
   useEffect(() => {
-    console.log("DID SOMETHING CHANGE?");
-    console.log("CLICKED!");
-    setShouldFetch(true);
-    console.log("Here is sampleFiltered");
-    console.log(data);
-    if (data) {
-      console.log("PLEASE?");
-      const plotData: PlotData = {};
-      plotData.showlegend = false;
-      plotData.mode = "markers";
+    if (sampleFiltered) {
+      console.log(sampleFiltered);
       const xCoor = [];
       const yCoor = [];
       const textData = [];
       let tempDataArr: Data[] = [];
       const colours = [];
-      for (let i = 0; i < data?.length; i++) {
-        xCoor.push(data[i].umapPlotPoint[0].x_coor);
-        yCoor.push(data[i].umapPlotPoint[0].y_coor);
+      for (let i = 0; i < sampleFiltered.length; i++) {
+        xCoor.push(sampleFiltered[i].umapPlotPoint[0].x_coor);
+        yCoor.push(sampleFiltered[i].umapPlotPoint[0].y_coor);
         textData.push(
-          `Dataset:${data[i].dataset_id} Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]} Signal:${data[i].sample_signals[0].signal}`
+          `Dataset:${sampleFiltered[i].dataset_id} Buffer:${sampleFiltered[i].metadata.buffer} Donor:${sampleFiltered[i].metadata.donor} Incubation Time(hr):${sampleFiltered[i].metadata["incubation time (hr)"]} Signal:${sampleFiltered[i].sample_signals[0].signal}`
         );
-        colours.push(data[i].sample_signals[0].signal);
-        /*
-        tempDataArr.push({
-          showlegend: false,
-          x: [data[i].umapPlotPoint[0].x_coor],
-          y: [data[i].umapPlotPoint[0].y_coor],
-          text: [
-            `Dataset:${data[i].dataset_id} Buffer:${data[i].metadata.buffer} Donor:${data[i].metadata.donor} Incubation Time(hr):${data[i].metadata["incubation time (hr)"]}`
-          ],
-          name: `Sample ${i + 1}`,
-          mode: "markers",
-          marker: {
-            color: [data[i].sampleSignals[0].signal]
-          }
-        });
-        */
+        colours.push(sampleFiltered[i].sample_signals[0].signal);
       }
-
-      plotData.x = xCoor;
-      plotData.y = yCoor;
-      plotData.text = textData;
-      plotData.marker = {
-        size: 40,
-        color: colours
+      const plotData = {
+        mode: "markers",
+        x: xCoor,
+        y: yCoor,
+        text: textData,
+        marker: {
+          size: 20,
+          color: colours,
+          colorscale: "Viridis",
+          colorbar: {
+            title: targetDisplay,
+            titleside: "right"
+          }
+        }
       };
+
       tempDataArr = [];
       tempDataArr.push(plotData);
 
       setDataArr(tempDataArr);
+      setShouldFetch(false);
     }
-  }, [data, shouldFetch]);
+  }, [sampleFiltered, shouldFetch, targetDisplay]);
 
   return (
     <>
-      <p>UMap Viewer</p>
-      <p>Dataset chosen</p>
-      <form>
-        <label>
+      <h1 className="text-center text-2xl	">UMap Viewer</h1>
+      <div className="flex justify-center items-center">
+        <div className="mx-2 flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700">
           <input
+            id="bordered-radio-1"
             type="radio"
+            value="1"
             name="Dataset 1"
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             checked={chosenDataSet[0] === "1"}
             onChange={(e) => changeDataSet(e)}
-            value="1"
           />
-          Dataset 1
-        </label>
-
-        <label>
+          <label
+            htmlFor="bordered-radio-1"
+            className="w-full p-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >
+            Dataset 1
+          </label>
+        </div>
+        <div className="mx-2 flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700">
           <input
+            id="bordered-radio-2"
             type="radio"
+            value="2"
             name="Dataset 2"
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             checked={chosenDataSet[0] === "2"}
             onChange={(e) => changeDataSet(e)}
-            value="2"
           />
-          DataSet 2
-        </label>
-      </form>
-      <Plot
-        data={dataArr}
-        layout={{ width: 1280, height: 960, title: targetDisplay }}
-      />
-      <p>MetaData Filters</p>
-      <p>Donors</p>
-      <ul className="list-group">
-        {filterCheckboxs.map((filter) => (
-          <li key={filter.id} className="list-group-item">
-            <div className="form-check flex-grow-1">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value={filter.value}
-                onChange={(e) => handleInputChange(e, "donor", donorChosen)}
-                id={filter.id}
-                checked={donorChosen.includes(filter.value)}
-              />
-              <label className="form-check-label" htmlFor={filter.id}>
-                {filter.label}
-              </label>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p>Buffer</p>
-      <ul className="list-group">
-        {bufferCheckBoxes.map((filter) => (
-          <li key={filter.id} className="list-group-item">
-            <div className="form-check flex-grow-1">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value={filter.value}
-                onChange={(e) => handleInputChange(e, "buffer", buffersChosen)}
-                id={filter.id}
-                checked={buffersChosen.includes(filter.value)}
-              />
-              <label className="form-check-label" htmlFor={filter.id}>
-                {filter.label}
-              </label>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p>Incubation Time(h)</p>
-      <ul className="list-group">
-        {incubationTimeBoxes.map((filter) => (
-          <li key={filter.id} className="list-group-item">
-            <div className="form-check flex-grow-1">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value={filter.value}
-                onChange={(e) =>
-                  handleInputChange(e, "incubation", incubationChosen)
-                }
-                id={filter.id}
-                checked={incubationChosen.includes(filter.value)}
-              />
-              <label className="form-check-label" htmlFor={filter.id}>
-                {filter.label}
-              </label>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <p>Targets(?)</p>
-      <form>
-        <label>
-          <input
-            type="radio"
-            name="April"
-            checked={targetDisplay === "April"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["1"]);
-            }}
-            value="April"
-          />
-          April
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="BAFF"
-            checked={targetDisplay === "BAFF"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["2"]);
-            }}
-            value="BAFF"
-          />
-          BAFF
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="CCL1"
-            checked={targetDisplay === "CCL1"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["3"]);
-            }}
-            value="CCL1"
-          />
-          CCL1
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="CNTF"
-            checked={targetDisplay === "CNTF"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["4"]);
-            }}
-            value="CNTF"
-          />
-          CNTF
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="IFN gamma"
-            checked={targetDisplay === "IFN gamma"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["5"]);
-            }}
-            value="IFN gamma"
-          />
-          IFN gamma
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="Mesothelin"
-            checked={targetDisplay === "Mesothelin"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["6"]);
-            }}
-            value="Mesothelin"
-          />
-          Mesothelin
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="PDGF-BB"
-            checked={targetDisplay === "PDGF-BB"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["7"]);
-            }}
-            value="PDGF-BB"
-          />
-          PDGF-BB
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="TWEAK"
-            checked={targetDisplay === "TWEAK"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["8"]);
-            }}
-            value="TWEAK"
-          />
-          TWEAK
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="uPA"
-            checked={targetDisplay === "uPA"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["9"]);
-            }}
-            value="uPA"
-          />
-          uPA
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="PD-1"
-            checked={targetDisplay === "PD-1"}
-            onChange={(e) => {
-              setTargetDisplay(e.target.value);
-              setTargetChosen(["10"]);
-            }}
-            value="PD-1"
-          />
-          PD-1
-        </label>
-      </form>
-      <button
-        onClick={filterClicked}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
-      >
-        Use Filter
-      </button>
+          <label
+            htmlFor="bordered-radio-2"
+            className="w-full p-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+          >
+            Dataset 2
+          </label>
+        </div>
+      </div>
+      <div className="container py-10 px-10 mx-0 min-w-full flex flex-col items-center">
+        <Plot
+          className="flex justify-center items-center"
+          data={dataArr}
+          layout={{ width: 1280, height: 960, title: targetDisplay }}
+        />
+        <AccordionList>
+          <Accordion>
+            <AccordionHeader className="font-medium text-tremor-content-strong dark:text-dark-tremor-content-strong text-center">
+              Donors
+            </AccordionHeader>
+            <AccordionBody className="text-center">
+              <ul className="w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                {filterCheckboxs.map((filter) => (
+                  <li
+                    key={filter.id}
+                    className="w-full border-b border-gray-200 rounded-t-lg dark:border-gray-600"
+                  >
+                    <div className="flex items-center ps-3">
+                      <input
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                        type="checkbox"
+                        value={filter.value}
+                        onChange={(e) =>
+                          handleInputChange(e, "donor", donorChosen)
+                        }
+                        id={filter.id}
+                        checked={donorChosen.includes(filter.value)}
+                      />
+                      <label
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        htmlFor={filter.id}
+                      >
+                        {filter.label}
+                      </label>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </AccordionBody>
+          </Accordion>
+          <Accordion>
+            <AccordionHeader className="font-medium text-tremor-content-strong dark:text-dark-tremor-content-strong text-center">
+              Buffer
+            </AccordionHeader>
+            <AccordionBody className="text-center">
+              <ul className="w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                {bufferCheckBoxes.map((filter) => (
+                  <li
+                    key={filter.id}
+                    className="w-full border-b border-gray-200 rounded-t-lg dark:border-gray-600"
+                  >
+                    <div className="flex items-center ps-3">
+                      <input
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                        type="checkbox"
+                        value={filter.value}
+                        onChange={(e) =>
+                          handleInputChange(e, "buffer", buffersChosen)
+                        }
+                        id={filter.id}
+                        checked={buffersChosen.includes(filter.value)}
+                      />
+                      <label
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        htmlFor={filter.id}
+                      >
+                        {filter.label}
+                      </label>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </AccordionBody>
+          </Accordion>
+          <Accordion>
+            <AccordionHeader className="font-medium text-tremor-content-strong dark:text-dark-tremor-content-strong text-center">
+              Incubation Time(h)
+            </AccordionHeader>
+            <AccordionBody className="text-center">
+              <ul className="w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                {incubationTimeBoxes.map((filter) => (
+                  <li
+                    key={filter.id}
+                    className="w-full border-b border-gray-200 rounded-t-lg dark:border-gray-600"
+                  >
+                    <div className="flex items-center ps-3">
+                      <input
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                        type="checkbox"
+                        value={filter.value}
+                        onChange={(e) =>
+                          handleInputChange(e, "incubation", incubationChosen)
+                        }
+                        id={filter.id}
+                        checked={incubationChosen.includes(filter.value)}
+                      />
+                      <label className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                        {filter.label}
+                      </label>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </AccordionBody>
+          </Accordion>
+          <Accordion>
+            <AccordionHeader className="font-medium text-tremor-content-strong dark:text-dark-tremor-content-strong text-center">
+              Targets
+            </AccordionHeader>
+            <AccordionBody>
+              <ul className="w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                {targetRadio.map((filter) => (
+                  <li
+                    key={filter.id}
+                    className="w-full border-b border-gray-200 rounded-t-lg dark:border-gray-600"
+                  >
+                    <div className="flex items-center ps-3">
+                      <input
+                        type="radio"
+                        value={filter.value}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                        onChange={() => {
+                          setTargetDisplay(filter.label);
+                          setTargetChosen([filter.id]);
+                        }}
+                        id={filter.id}
+                        checked={targetDisplay === filter.label}
+                      />
+                      <label
+                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        htmlFor={filter.id}
+                      >
+                        {filter.label}
+                      </label>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </AccordionBody>
+          </Accordion>
+        </AccordionList>
+        <Button
+          className="mt-3"
+          onClick={() => {
+            setShouldFetch(true);
+          }}
+        >
+          Update Filters
+        </Button>
+      </div>
     </>
   );
 }
