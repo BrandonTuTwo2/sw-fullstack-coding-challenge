@@ -29,6 +29,7 @@ class SampleSerializer(serializers.ModelSerializer):
         model = Sample
         fields = ["id","metadata","dataset_id","plate_barcode","well_id","umapPlotPoint","sample_signals"]
 
+    #This will remove all of the sample_signals that don't have the target and will return only 1 element in the array 
     def get_sample_signals(self, obj):
         target = self.context.get('target', None)
         return SampleSignalSerializer(obj.sample_signals.filter(target_id=target), many=True).data

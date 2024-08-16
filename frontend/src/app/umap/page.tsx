@@ -1,7 +1,8 @@
 "use client";
 import dynamic from "next/dynamic";
-const Plot = dynamic(() => import("react-plotly.js"), { ssr: false });
+const Plot = dynamic(() => import("react-plotly.js"), { ssr: false }); //Have to import it this way or else I get an error
 import { useMetaFilter } from "@/lib/sample";
+import { useTargets } from "@/lib/target";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Data } from "plotly.js";
 import {
@@ -21,7 +22,7 @@ export default function Page() {
   const [buffersChosen, setbuffersChosen] = useState(["NaCl", "PBS"]);
   const [incubationChosen, setInucationChosen] = useState(["1", "2", "3", "4"]);
   const [dataArr, setDataArr] = useState(Array<Data>);
-
+  const { targets } = useTargets();
   const { sampleFiltered } = useMetaFilter(
     shouldFetch,
     chosenDataSet,
@@ -31,10 +32,7 @@ export default function Page() {
     targetChosen
   );
 
-  const changeDataSet = (e: ChangeEvent<HTMLInputElement>) => {
-    setChosenDataSet([e.target.value]);
-  };
-
+  //This is for updated the meta choice arrays, if the options is already inside them then it removes it and if not then it adds it
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement>,
     metaChosen: string,
@@ -111,60 +109,9 @@ export default function Page() {
       value: "4"
     }
   ];
+  useEffect(() =>{
 
-  const targetRadio = [
-    {
-      id: "1",
-      label: "April",
-      value: "1"
-    },
-    {
-      id: "2",
-      label: "BAFF",
-      value: "2"
-    },
-    {
-      id: "3",
-      label: "CCL1",
-      value: "3"
-    },
-    {
-      id: "4",
-      label: "CNTF",
-      value: "4"
-    },
-    {
-      id: "5",
-      label: "IFN gamma",
-      value: "5"
-    },
-    {
-      id: "6",
-      label: "Mesothelin",
-      value: "6"
-    },
-    {
-      id: "7",
-      label: "PDFG-BB",
-      value: "7"
-    },
-    {
-      id: "8",
-      label: "TWEAK",
-      value: "8"
-    },
-    {
-      id: "9",
-      label: "uPA",
-      value: "9"
-    },
-    {
-      id: "10",
-      label: "PD-1",
-      value: "10"
-    }
-  ];
-
+  },[])
   useEffect(() => {
     if (sampleFiltered) {
       console.log(sampleFiltered);
@@ -177,7 +124,7 @@ export default function Page() {
         xCoor.push(sampleFiltered[i].umapPlotPoint[0].x_coor);
         yCoor.push(sampleFiltered[i].umapPlotPoint[0].y_coor);
         textData.push(
-          `Dataset:${sampleFiltered[i].dataset_id} Buffer:${sampleFiltered[i].metadata.buffer} Donor:${sampleFiltered[i].metadata.donor} Incubation Time(hr):${sampleFiltered[i].metadata["incubation time (hr)"]} Signal:${sampleFiltered[i].sample_signals[0].signal}`
+          `Dataset:${sampleFiltered[i].dataset_id} Buffer:${sampleFiltered[i].metadata.buffer} Donor:${sampleFiltered[i].metadata.donor} Incubation Time(hr):${sampleFiltered[i].metadata["incubation time (hr)"]} Signal:${sampleFiltered[i].sample_signals[0].signal} Target:${sampleFiltered[i].sample_signals[0].target_id}`
         );
         colours.push(sampleFiltered[i].sample_signals[0].signal);
       }
@@ -187,7 +134,7 @@ export default function Page() {
         y: yCoor,
         text: textData,
         marker: {
-          size: 20,
+          size: 15,
           color: colours,
           colorscale: "Viridis",
           colorbar: {
@@ -217,7 +164,7 @@ export default function Page() {
             name="Dataset 1"
             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             checked={chosenDataSet[0] === "1"}
-            onChange={(e) => changeDataSet(e)}
+            onChange={(e) => setChosenDataSet([e.target.value])}
           />
           <label
             htmlFor="bordered-radio-1"
@@ -234,7 +181,7 @@ export default function Page() {
             name="Dataset 2"
             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             checked={chosenDataSet[0] === "2"}
-            onChange={(e) => changeDataSet(e)}
+            onChange={(e) => setChosenDataSet([e.target.value])}
           />
           <label
             htmlFor="bordered-radio-2"
@@ -356,7 +303,7 @@ export default function Page() {
             </AccordionHeader>
             <AccordionBody>
               <ul className="w-48 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                {targetRadio.map((filter) => (
+                {targets.map((filter) => (
                   <li
                     key={filter.id}
                     className="w-full border-b border-gray-200 rounded-t-lg dark:border-gray-600"
@@ -364,20 +311,17 @@ export default function Page() {
                     <div className="flex items-center ps-3">
                       <input
                         type="radio"
-                        value={filter.value}
+                        value={filter.id}
                         className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
                         onChange={() => {
-                          setTargetDisplay(filter.label);
-                          setTargetChosen([filter.id]);
+                          setTargetDisplay(filter.name);
+                          setTargetChosen([filter.id.toString()]);
                         }}
-                        id={filter.id}
-                        checked={targetDisplay === filter.label}
+                        id={"Target" + filter.id}
+                        checked={targetDisplay === filter.name}
                       />
-                      <label
-                        className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                        htmlFor={filter.id}
-                      >
-                        {filter.label}
+                      <label className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                        {filter.name}
                       </label>
                     </div>
                   </li>

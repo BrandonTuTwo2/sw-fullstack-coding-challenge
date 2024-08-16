@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import { fetchJson } from "./fetching";
 
-export type Sample = {
+type Sample = {
   id: number;
   metadata: metadata;
   dataset_id: number;
@@ -44,6 +44,7 @@ export function useSamples() {
   };
 }
 
+//This will only run when shouldFetch is true else returns null to sampleFiltered so it esentially only runs on button clicked
 export function useMetaFilter(
   shouldFetch: boolean,
   chosenDataSet: string[],

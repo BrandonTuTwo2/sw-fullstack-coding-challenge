@@ -13,7 +13,7 @@ export function useTargets() {
   );
 
   return {
-    targets: data,
+    targets: data || [],
     isLoading,
     isError: error
   };
