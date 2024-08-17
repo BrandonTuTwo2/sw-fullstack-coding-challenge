@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 const Plot = dynamic(() => import("react-plotly.js"), { ssr: false }); //Have to import it this way or else I get an error
 import { useMetaFilter } from "@/lib/sample";
 import { useTargets } from "@/lib/target";
+import { useDatasets } from "@/lib/dataset";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Data } from "plotly.js";
 import {
@@ -15,6 +16,7 @@ import {
 
 export default function Page() {
   const [shouldFetch, setShouldFetch] = useState(true);
+  const { datasets } = useDatasets();
   const [chosenDataSet, setChosenDataSet] = useState(["1"]);
   const [targetChosen, setTargetChosen] = useState(["1"]);
   const [targetDisplay, setTargetDisplay] = useState("April");
@@ -152,42 +154,25 @@ export default function Page() {
 
   return (
     <>
-      <h1 className="text-center text-2xl	">UMap Viewer</h1>
+      <h1 className="text-center text-2xl	">Umap Viewer</h1>
       <div className="flex justify-center items-center">
-        <div className="mx-2 flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700">
-          <input
-            id="bordered-radio-1"
-            type="radio"
-            value="1"
-            name="Dataset 1"
-            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            checked={chosenDataSet[0] === "1"}
-            onChange={(e) => setChosenDataSet([e.target.value])}
-          />
-          <label
-            htmlFor="bordered-radio-1"
-            className="w-full p-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+        {datasets.map((filter) => (
+          <div
+            key={filter.id}
+            className="mx-2 flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700"
           >
-            Dataset 1
-          </label>
-        </div>
-        <div className="mx-2 flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700">
-          <input
-            id="bordered-radio-2"
-            type="radio"
-            value="2"
-            name="Dataset 2"
-            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            checked={chosenDataSet[0] === "2"}
-            onChange={(e) => setChosenDataSet([e.target.value])}
-          />
-          <label
-            htmlFor="bordered-radio-2"
-            className="w-full p-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-          >
-            Dataset 2
-          </label>
-        </div>
+            <input
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              type="radio"
+              value={filter.id}
+              checked={chosenDataSet[0] === filter.id.toString()}
+              onChange={() => setChosenDataSet([filter.id.toString()])}
+            />
+            <label className="w-full p-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+              {filter.name}
+            </label>
+          </div>
+        ))}
       </div>
       <div className="container py-10 px-10 mx-0 min-w-full flex flex-col items-center">
         <Plot

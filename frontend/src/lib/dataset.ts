@@ -13,7 +13,7 @@ export function useDatasets() {
   );
 
   return {
-    datasets: data,
+    datasets: data || [],
     isLoading,
     isError: error
   };
