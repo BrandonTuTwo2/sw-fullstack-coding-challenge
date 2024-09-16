@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { NomicBrand } from "./brand";
+import { CompanyBrand } from "./brand";
 import { HomeIcon, ChartBarIcon } from "@heroicons/react/20/solid";
 import { classNames } from "@/lib/utils";
 import { usePathname } from "next/navigation";
@@ -21,7 +21,7 @@ export default function Navbar() {
     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-navy-950 px-6 pb-4">
       <div className="flex h-16 shrink-0 items-center">
         <Link href="/">
-          <NomicBrand />
+          <CompanyBrand />
         </Link>
       </div>
       <nav className="flex flex-1 flex-col">

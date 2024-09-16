@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 
-export function NomicBrand({ width = 32 }) {
+export function CompanyBrand({ width = 32 }) {
   return (
     <div className={`flex w-${width} mt-5`}>
       <svg

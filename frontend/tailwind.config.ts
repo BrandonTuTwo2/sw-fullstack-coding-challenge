@@ -3,7 +3,7 @@ import type { Config } from "tailwindcss";
 const tcolors = require("tailwindcss/colors");
 const defaultTheme = require("tailwindcss/defaultTheme");
 
-const nomicColors = {
+const CompanyColors = {
   navy: {
     "50": "#e9eeff",
     "100": "#d6e0ff",
@@ -114,34 +114,34 @@ const config: Config = {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans]
       },
       colors: {
-        ...nomicColors,
+        ...CompanyColors,
         // light mode
         tremor: {
           brand: {
-            faint: nomicColors.blue[50],
-            muted: nomicColors.blue[200],
-            subtle: nomicColors.blue[400],
-            DEFAULT: nomicColors.blue[500],
-            emphasis: nomicColors.blue[700],
+            faint: CompanyColors.blue[50],
+            muted: CompanyColors.blue[200],
+            subtle: CompanyColors.blue[400],
+            DEFAULT: CompanyColors.blue[500],
+            emphasis: CompanyColors.blue[700],
             inverted: tcolors.white
           },
           background: {
-            muted: nomicColors.cgray[50],
-            subtle: nomicColors.cgray[100],
+            muted: CompanyColors.cgray[50],
+            subtle: CompanyColors.cgray[100],
             DEFAULT: tcolors.white,
             emphasis: tcolors.gray[200]
           },
           border: {
-            DEFAULT: nomicColors.cgray[200]
+            DEFAULT: CompanyColors.cgray[200]
           },
           ring: {
-            DEFAULT: nomicColors.cgray[200]
+            DEFAULT: CompanyColors.cgray[200]
           },
           content: {
-            subtle: nomicColors.cgray[400],
-            DEFAULT: nomicColors.cgray[800],
-            emphasis: nomicColors.cgray[900],
-            strong: nomicColors.cgray[950],
+            subtle: CompanyColors.cgray[400],
+            DEFAULT: CompanyColors.cgray[800],
+            emphasis: CompanyColors.cgray[900],
+            strong: CompanyColors.cgray[950],
             inverted: tcolors.white
           }
         },
