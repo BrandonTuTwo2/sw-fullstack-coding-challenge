@@ -2,13 +2,6 @@
 ## Goal
 Add a new umap graphing feature to the existing web app. **This assessment should take a maximum of 5 hours**. 
 
-## Submitting Assessment
-Clone this repository and push it to a private repo on your account, and then give access to the following users:
-- [@nomichris](https://github.com/nomichris)
-- [@thomas-dunlop](https://github.com/thomas-dunlop)
-
-Make sure to email chris.harris@nomic.bio when you complete the assesment and it is ready for review. 
-
 ## UMAP Feature
 [UMAP](https://umap-learn.readthedocs.io/en/latest/) (Uniform Manifold Approximation and Projection for Dimension Reduction) is a dimension reduction technique. For this assesment, you need to plot a two dimensional UMAP scatterplot with x_coor along the x-axis and y_coor along the y-axis. The user should be able to select which dataset to display, what points appear based on their metadata, and colour the plot based on a selected target's signal. See below for an example plot. 
 
